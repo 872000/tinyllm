@@ -23,7 +23,9 @@ def generate(model, tokenizer, prompt, max_tokens=100, temperature=0.8,
         else:
             scaled = next_logits / max(temperature, 1e-8)
             if top_k and top_k > 0:
-                kth = np.partition(scaled, -top_k)[-top_k]
+                # top_k larger than the vocabulary is just "all tokens".
+                k = min(top_k, len(scaled))
+                kth = np.partition(scaled, -k)[-k]
                 scaled = np.where(scaled < kth, -1e9, scaled)
             probs = softmax(scaled)
             next_id = int(rng.choice(len(probs), p=probs))

@@ -94,6 +94,16 @@ class TestGeneration(unittest.TestCase):
         self.assertTrue(text.startswith("The sea"))
         self.assertTrue(all(ch in tok.char_to_id for ch in text))
 
+    def test_top_k_larger_than_vocab_does_not_crash(self):
+        # Regression: top_k above the vocab size used to raise
+        # "ValueError: kth out of bounds" from np.partition. It now
+        # behaves like sampling from the full vocabulary.
+        model, tok = tiny_model()
+        text = generate(model, tok, "The", max_tokens=10,
+                        temperature=0.8, top_k=1000, seed=1)
+        self.assertTrue(text.startswith("The"))
+        self.assertTrue(all(ch in tok.char_to_id for ch in text))
+
 
 class TestCheckpoint(unittest.TestCase):
     def test_save_load_round_trip(self):
